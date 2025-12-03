@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 
 class TopNavigationBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSignIn;
-  final VoidCallback onNotifications;
+  final VoidCallback onUser;
+  final VoidCallback onNotification;
+  final bool hasToken;              // <— CHECK LOGIN
+  final int notificationCount;      // <— BADGE COUNT
+  final String? userName;
 
   const TopNavigationBar({
     Key? key,
     required this.onSignIn,
-    required this.onNotifications,
+    required this.onUser,
+    required this.onNotification,
+    required this.hasToken,
+    this.notificationCount = 0,
+    this.userName,
   }) : super(key: key);
 
   @override
@@ -35,7 +43,7 @@ class TopNavigationBar extends StatelessWidget implements PreferredSizeWidget {
           Row(
             children: [
               Image.asset(
-                'assets/images/logo.jpg', // your logo asset
+                'assets/images/logo.jpg',
                 height: 30,
               ),
               const SizedBox(width: 8),
@@ -49,22 +57,68 @@ class TopNavigationBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ],
           ),
-          // Right side: notification + sign in
+
+          // Right side section
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: onNotifications,
-              ),
-              TextButton(
-                onPressed: onSignIn,
-                child: const Text(
-                  "Sign In",
-                  style: TextStyle(color: Colors.white),
+              /// ------------------------------
+              /// SHOW NOTIFICATION ONLY IF LOGGED IN
+              /// ------------------------------
+              if (hasToken) 
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications, color: Colors.white),
+                      onPressed: onNotification,
+                    ),
+                    
+                    // BADGE
+                    if (notificationCount > 0)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            notificationCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
+
+              const SizedBox(width: 10),
+
+              /// USER ICON / SIGN IN
+              if (!hasToken)
+                TextButton(
+                  onPressed: onSignIn,
+                  child: const Text("Sign In", style: TextStyle(color: Colors.white)),
+                )
+              else
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.person, color: Colors.white),
+                      onPressed: onUser,
+                    ),
+                    if (userName != null)
+                      Text(
+                        userName!,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                  ],
+                ),
             ],
-          ),
+          )
         ],
       ),
     );

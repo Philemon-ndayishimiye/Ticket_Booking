@@ -16,7 +16,6 @@ class CustomBottomNavBar extends StatelessWidget {
       {'icon': Icons.home, 'label': 'Home'},
       {'icon': Icons.search, 'label': 'Discover'},
       {'icon': Icons.confirmation_num, 'label': 'My Tickets'},
-      {'icon': Icons.event, 'label': 'Events'},
       {'icon': Icons.person, 'label': 'Profile'},
     ];
 

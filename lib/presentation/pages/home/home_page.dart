@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ticket_booking/presentation/pages/home/Event_view_model.dart';
 import 'package:ticket_booking/presentation/pages/home/widgets/TopNavigation.dart';
 import 'package:ticket_booking/presentation/pages/home/widgets/ButtonNavigation.dart';
 import 'package:ticket_booking/presentation/pages/home/widgets/image_carousel.dart';
 import 'package:ticket_booking/presentation/pages/home/widgets/ActivityCard.dart';
-import 'package:ticket_booking/presentation/pages/login/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,62 +17,59 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  String? token;
+  String? userName;
+  bool _loaded = false;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+    loadToken();
+  }
 
-    // Handle navigation logic based on the index
-    switch (index) {
-      case 0:
-        // Navigate to Home
-        print('home');
-        break;
-      case 1:
-        print('discover');
-        // Navigate to Discover
-        break;
-      case 2:
-        // Navigate to My Tickets
-        print('my ticket');
-        break;
-      case 3:
-        // Navigate to Events
-        print('events');
-        break;
-      case 4:
-        // Navigate to Profile
-        print('profile ');
-        break;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      context.read<EventViewModel>().loadEvents();
+      _loaded = true;
     }
   }
 
-  void _handleSignIn() {
-    // TODO: Navigate to sign-in page
-    Navigator.push(context, MaterialPageRoute(builder:(context)=>LoginPage() ),);
-  }
-
-  void _handleNotifications() {
-    // TODO: Handle notifications
+  Future<void> loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token');
+      userName = prefs.getString('username');
+      _loaded = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventVM = Provider.of<EventViewModel>(context);
+
     return Scaffold(
-      appBar: TopNavigationBar(
-        onSignIn: _handleSignIn,
-        onNotifications: _handleNotifications,
-      ),
+      appBar: _loaded
+          ? TopNavigationBar(
+              onSignIn: () => context.go('/login'),
+              onNotification: () => context.go('/notifications'),
+              onUser: () => context.go('/myprofile'),
+              hasToken: token != null && token!.isNotEmpty,
+              userName: token != null && token!.isNotEmpty ? userName : null,
+              notificationCount: token != null && token!.isNotEmpty ? 5 : 0,
+            )
+          : null,
 
       body: Container(
-        color: Colors.blueAccent, // background color
+        color: Colors.blueAccent,
         child: SingleChildScrollView(
           child: Column(
             children: [
               SizedBox(height: 0),
-              ImageCarousel(), // Carousel section
+              ImageCarousel(),
               SizedBox(height: 12),
+
               Text(
                 "Best Location",
                 style: TextStyle(
@@ -79,31 +78,24 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.white,
                 ),
               ),
+
               SizedBox(height: 15),
 
-              ActivityCard(
-                backgroundImage: 'assets/images/arena.png',
-                activityNames: ['Live Music', 'Volley Ball'],
-                onTap: ()=>{print('arena')},
-              ),
+              eventVM.isLoading
+                  ? CircularProgressIndicator()
+                  : Column(
+                      children: eventVM.events.map((event) {
+                        return ActivityCard(
+                          backgroundImage:
+                              event.bannerImage ??
+                              'assets/images/placeholder.png',
+                          activityNames: [event.title, event.venue.name],
+                          onTap: () => context.go('/eventplace/${event.id}'),
+                        );
+                      }).toList(),
+                    ),
 
-              SizedBox(height: 10),
-
-               ActivityCard(
-                backgroundImage: 'assets/images/intare.png',
-                activityNames: ['concert' ,'youth connect'],
-                onTap: ()=>{print('intare')},
-              ),
-
-              SizedBox(height: 10),
-
-              ActivityCard(
-                backgroundImage: 'assets/images/convetion.png',
-                activityNames: ['digital program' ,''],
-                onTap: ()=>{'convention'},
-              ),
-
-              SizedBox(height: 10),
+              SizedBox(height: 80),
             ],
           ),
         ),
@@ -111,7 +103,26 @@ class _HomePageState extends State<HomePage> {
 
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
-        onItemTapped: _onItemTapped,
+        onItemTapped: (index) {
+          setState(() => _currentIndex = index);
+          switch (index) {
+            case 0:
+              context.go('/');
+              break;
+            case 1:
+              context.go('/discover');
+              break;
+            case 2:
+              context.go('/ticketpage');
+              break;
+            case 3:
+              context.go('/events');
+              break;
+            case 4:
+              context.go('/profile');
+              break;
+          }
+        },
       ),
     );
   }

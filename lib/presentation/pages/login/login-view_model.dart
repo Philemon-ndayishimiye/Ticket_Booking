@@ -9,25 +9,35 @@ class LoginViewModel extends ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
-  LoginViewModel({
-    required this.userRepository,
-    required this.storageService,
-  });
+  LoginViewModel({required this.userRepository, required this.storageService});
 
-  Future<bool> login(String username, String password) async {
+  Future<bool> login(String email, String password) async {
     _loading = true;
     notifyListeners();
 
     try {
-      final user = await userRepository.login(
-        username: username,
+      final response = await userRepository.login(
+        email: email,
         password: password,
       );
 
-      // Token and userId already saved in repository
-      _loading = false;
-      notifyListeners();
-      return true;
+      // Check the status from API response
+      if (response.status == 'success') {
+        // Save tokens and userId
+        if (response.access != null) {
+          await storageService.saveToken(response.access!);
+        }
+        if (response.user?.id != null) {
+          await storageService.saveUserId(response.user!.id!);
+        }
+        _loading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _loading = false;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       print('Login error: $e');
       _loading = false;

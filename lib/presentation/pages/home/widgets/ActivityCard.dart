@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 
 class ActivityCard extends StatelessWidget {
-  final String backgroundImage;
-  final List<String> activityNames; // e.g., ['Yoga', 'Meditation']
+  final String backgroundImage; // network URL or asset path
+  final List<String> activityNames;
   final VoidCallback? onTap;
 
   const ActivityCard({
     Key? key,
     required this.backgroundImage,
     required this.activityNames,
-    required  this.onTap,
+    required this.onTap,
   }) : super(key: key);
+
+  bool isNetworkImage(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 90% of screen width
     final double cardWidth = MediaQuery.of(context).size.width * 0.9;
 
     return GestureDetector(
@@ -25,36 +28,73 @@ class ActivityCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          image: DecorationImage(
-            image: AssetImage(backgroundImage),
-            fit: BoxFit.cover,
-          ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [Colors.black.withOpacity(0.4), Colors.transparent],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: activityNames
-                .map(
-                  (name) => Text(
-                    name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // ---------- IMAGE SECTION ----------
+              Positioned.fill(
+                child: isNetworkImage(backgroundImage)
+                    ? Image.network(
+                        backgroundImage,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset(
+                          "assets/images/placeholder.png",
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Image.asset(
+                        backgroundImage,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+
+              // ---------- GRADIENT OVERLAY ----------
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withOpacity(0.5),
+                        Colors.transparent
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
                     ),
                   ),
-                )
-                .toList(),
+                ),
+              ),
+
+              // ---------- TEXT SECTION ----------
+              Positioned(
+                bottom: 12,
+                left: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: activityNames
+                      .map(
+                        (name) => Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 4,
+                                color: Colors.black,
+                                offset: Offset(1, 1),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -8,12 +8,11 @@ class TicketBooking extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      // Use router for web-friendly routes
-      routerConfig: router, // see app/router.dart
-      title: 'My Flutter App',
-      theme: AppTheme.light,   // defined in app_theme.dart
+      routerConfig: router,
+      title: 'KTicket',
+      theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      // You can add localization delegates, etc. here later
+      debugShowCheckedModeBanner: false,
     );
   }
 }

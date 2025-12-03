@@ -21,15 +21,15 @@ class AppButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor ?? Colors.blueAccent,
         foregroundColor: textColor ?? Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16  , horizontal:12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(23),
         ),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 16,
+          fontSize: 19,
           fontWeight: FontWeight.bold,
           color: textColor ?? Colors.white,
         ),
